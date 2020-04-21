@@ -7,6 +7,10 @@ class AnsibleInventory
   @config = nil
   @path = ""
 
+  def self.VERSION
+    "0.1.0"
+  end
+
   def initialize(path)
     @path = path
   end
