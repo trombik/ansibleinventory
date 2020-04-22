@@ -1,17 +1,19 @@
-require "open3"
-require "yaml"
-require "shellwords"
+# frozen_string_literal: true
+
+require 'open3'
+require 'yaml'
+require 'shellwords'
 
 # Class to represent ansible inventory
 class AnsibleInventory
   attr_accessor :addnsible_inventory_path
   @config = nil
   @config_list_hosts = nil
-  @path = ""
+  @path = ''
   @config_host = {}
 
-  def self.VERSION
-    "0.1.0"
+  def self.version
+    '0.1.0'
   end
 
   def initialize(path)
@@ -19,17 +21,20 @@ class AnsibleInventory
   end
 
   def ansible_inventory_path
-    "ansible-inventory"
+    'ansible-inventory'
   end
 
   def ansible_path
-    "ansible"
+    'ansible'
   end
 
   # Returns parsed inventory content
   def config
     return @config if @config
-    cmd = "#{ansible_inventory_path} --inventory #{Shellwords.escape(@path)} --yaml --list"
+
+    cmd = "#{ansible_inventory_path}" \
+          " --inventory #{Shellwords.escape(@path)}" \
+          ' --yaml --list'
     o, e, s = run_command(cmd)
     unless s.success?
       warn e
@@ -40,7 +45,10 @@ class AnsibleInventory
 
   def config_host(host)
     return @config_host[host] if @config_host.key?(host)
-    cmd = "#{ansible_inventory_path} --inventory #{Shellwords.escape(@path)} --yaml --host #{Shellwords.escape(host)}"
+
+    cmd = "#{ansible_inventory_path}" \
+          " --inventory #{Shellwords.escape(@path)}" \
+          " --yaml --host #{Shellwords.escape(host)}"
     o, e, s = run_command(cmd)
     unless s.success?
       warn e
@@ -51,12 +59,16 @@ class AnsibleInventory
 
   def config_list_hosts(group)
     return @config_list_hosts if @config_list_hosts
-    cmd = "#{ansible_path} --inventory #{Shellwords.escape(@path)} --list-hosts #{Shellwords.escape(group)}"
+
+    cmd = "#{ansible_path}" \
+          " --inventory #{Shellwords.escape(@path)}" \
+          " --list-hosts #{Shellwords.escape(group)}"
     o, e, s = run_command(cmd)
     unless s.success?
       warn e
       raise "failed to run `#{cmd}`: #{s}"
     end
+    @config_list_hosts = o
   end
 
   def run_command(cmd)
@@ -71,15 +83,15 @@ class AnsibleInventory
   end
 
   def host(host)
-    return config_host(host)
+    config_host(host)
   end
 
   def root_of_groups
     c = config
     begin
-      c["all"]["children"]
-    rescue
-      raise RuntimeError, "BUG: unexpected inventory result from ansible-inventory"
+      c['all']['children']
+    rescue StandardError
+      raise 'BUG: unexpected inventory result from ansible-inventory'
     end
   end
 
@@ -94,29 +106,30 @@ class AnsibleInventory
 
   def find_hidden_groups(parent)
     return [] if !parent ||
-                 !parent.key?("children") ||
-                 !parent["children"].respond_to?("keys")
-    found = parent["children"].keys
+                 !parent.key?('children') ||
+                 !parent['children'].respond_to?('keys')
+
+    found = parent['children'].keys
     found.each do |child|
-      found += find_hidden_groups(parent["children"][child])
+      found += find_hidden_groups(parent['children'][child])
     end
     found.uniq
   end
 
   def find_host_by_ec2_hostname(hostname)
-    config["all"]["children"]["ec2"]["hosts"][hostname.gsub(/[.]/, "_")]
+    config['all']['children']['ec2']['hosts'][hostname.gsub(/[.]/, '_')]
   end
 
   def resolve_hosts_of(group)
     hosts = []
     return [] if group.nil? || group.empty?
-    raise "group does not have children or hosts as key:\n" + group.to_yaml unless group.key?("children") || group.key?("hosts")
-    if group.key?("children")
-      group["children"].keys.each do |child|
-        hosts += resolve_hosts_of(group["children"][child])
+
+    if group.key?('children')
+      group['children'].keys.each do |child|
+        hosts += resolve_hosts_of(group['children'][child])
       end
-    elsif group.key?("hosts")
-      hosts += group["hosts"].keys.map{|key| key.gsub("_", ".") }
+    elsif group.key?('hosts')
+      hosts += group['hosts'].keys.map { |key| key.gsub('_', '.') }
     else
       raise "BUG \n" + group.to_yaml
     end
