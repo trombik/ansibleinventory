@@ -125,7 +125,7 @@ class AnsibleInventory
     return [] if group.nil? || group.empty?
 
     if group.key?("children")
-      group["children"].keys.each do |child|
+      group["children"].each_key do |child|
         hosts += resolve_hosts_of(group["children"][child])
       end
     elsif group.key?("hosts")
