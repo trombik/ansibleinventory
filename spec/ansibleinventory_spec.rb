@@ -2,6 +2,8 @@ RSpec.describe AnsibleInventory do
   let(:inventory) { AnsibleInventory.new("foo/bar") }
   let(:inventory_simple) { YAML.load_file("spec/fixtures/simple.yml") }
   let(:inventory_simple_host) { YAML.load_file("spec/fixtures/simple_host.yml") }
+  let(:inventory_ec2) { YAML.load_file("spec/fixtures/ec2.yml") }
+  let(:inventory_ec2_host) { YAML.load_file("spec/fixtures/ec2_host.yml") }
 
   it "has a version number" do
     expect(AnsibleInventory.VERSION).not_to be nil
@@ -16,6 +18,38 @@ RSpec.describe AnsibleInventory do
   describe "#ansible_inventory_path" do
     it "is ansible-inventory" do
       expect(inventory.ansible_inventory_path).to eq "ansible-inventory"
+    end
+  end
+
+  describe "#resolve_hosts_of" do
+    let(:group) do
+      {
+        "children" => {
+          "staging-mx" => {
+            "children" => {
+              "mx" => {
+                "children" => {
+                  "mx1.trombik.org" => {
+                    "children" => {
+                      "tag_Name_mx1_trombik_org" => {
+                        "hosts" => {
+                          "mx1_trombik_org" => {},
+                          "mx2_trombik_org" => {}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    end
+
+    it "returns an array of hosts" do
+      expect(inventory.resolve_hosts_of(group)).to include("mx1.trombik.org")
+      expect(inventory.resolve_hosts_of(group)).to include("mx2.trombik.org")
     end
   end
 
@@ -77,6 +111,22 @@ RSpec.describe AnsibleInventory do
         expect{ inventory.all_hosts_in("foo") }.to raise_error(RuntimeError)
       end
     end
+
+    context "inventry is ec2" do
+      before do
+        allow(inventory).to receive(:config).and_return(inventory_ec2)
+      end
+
+      context "given a group that exists" do
+        it "returns mx1" do
+          expect(inventory.all_hosts_in("staging")).to include("mx1.trombik.org")
+        end
+
+        it "returns mx1" do
+          expect(inventory.all_hosts_in("staging-credentials")).to include("mx1.trombik.org")
+        end
+      end
+    end
   end
 
   describe "#host" do
@@ -87,6 +137,16 @@ RSpec.describe AnsibleInventory do
 
       it "returns mx1.trombik.org" do
         expect(inventory.host("mx1.trombik.org")).to include("ansible_host" => "172.16.100.100", "vagrant_priority" => 10)
+      end
+    end
+    context "inventory is ec2_host" do
+      before do
+        allow(inventory).to receive(:config_host).with("mx1.trombik.org").and_return(inventory_ec2_host)
+      end
+
+      it "returns mx1.trombik.org" do
+        expect(inventory.host("mx1.trombik.org")).to include("ansible_host" => "52.192.154.86")
+        expect(inventory.host("mx1.trombik.org")).to include("ec2_private_ip_address" => "172.31.20.37")
       end
     end
   end

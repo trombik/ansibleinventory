@@ -67,39 +67,27 @@ class AnsibleInventory
   # @param group [String] name of group
   # @return [Array] array of string of hosts in the group
   def all_hosts_in(group)
-    c = config
-    begin
-      children = c["all"]["children"]
-    rescue TypeError => e
-      warn c
-      raise RuntimeError, "BUG: unexpected inventory result from ansible-inventory"
-    end
-    hosts = []
-    return hosts unless children.key?(group)
-    if children[group].key?("hosts")
-      return children[group]["hosts"].keys
-    elsif children[group].key?("children")
-      hosts = []
-      children[group]["children"].keys.each do |child|
-        hosts += children[group]["children"][child]["hosts"].keys
-      end
-      return hosts
-    else
-      warn config
-      raise RuntimeError, "BUG: unexpected inventory result from ansible-inventory"
-    end
+    resolve_hosts_of(root_of_groups[group])
   end
 
   def host(host)
     return config_host(host)
   end
 
-  def all_groups
+  def root_of_groups
     c = config
-    groups = c["all"]["children"].keys
+    begin
+      c["all"]["children"]
+    rescue
+      raise RuntimeError, "BUG: unexpected inventory result from ansible-inventory"
+    end
+  end
+
+  def all_groups
+    groups = root_of_groups.keys
     hidden_groups = []
     groups.each do |group|
-      hidden_groups += find_hidden_groups(c["all"]["children"][group])
+      hidden_groups += find_hidden_groups(root_of_groups[group])
     end
     (groups + hidden_groups).uniq
   end
@@ -117,5 +105,21 @@ class AnsibleInventory
 
   def find_host_by_ec2_hostname(hostname)
     config["all"]["children"]["ec2"]["hosts"][hostname.gsub(/[.]/, "_")]
+  end
+
+  def resolve_hosts_of(group)
+    hosts = []
+    return [] if group.nil? || group.empty?
+    raise "group does not have children or hosts as key:\n" + group.to_yaml unless group.key?("children") || group.key?("hosts")
+    if group.key?("children")
+      group["children"].keys.each do |child|
+        hosts += resolve_hosts_of(group["children"][child])
+      end
+    elsif group.key?("hosts")
+      hosts += group["hosts"].keys.map{|key| key.gsub("_", ".") }
+    else
+      raise "BUG \n" + group.to_yaml
+    end
+    hosts
   end
 end
