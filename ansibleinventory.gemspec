@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Tomoyuki Sakurai"]
   spec.email         = ["y@trombik.org"]
 
-  spec.summary       = "Retreive ansible inventry data from ruby"
+  spec.summary       = "Retrieve ansible inventry data from ruby"
   spec.homepage      = "https://github.com/trombik/#{spec.name}"
   spec.license       = "MIT"
 
