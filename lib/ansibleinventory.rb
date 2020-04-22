@@ -54,7 +54,7 @@ class AnsibleInventory
       warn e
       raise "failed to run `#{cmd}`: #{s}"
     end
-    @config[host] = YAML.safe_load(o)
+    @config_host[host] = YAML.safe_load(o)
   end
 
   def config_list_hosts(group)
