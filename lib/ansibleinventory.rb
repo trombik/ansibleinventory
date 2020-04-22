@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-require 'open3'
-require 'yaml'
-require 'shellwords'
+require "open3"
+require "yaml"
+require "shellwords"
 
 # Class to represent ansible inventory
 class AnsibleInventory
   attr_accessor :addnsible_inventory_path
   @config = nil
   @config_list_hosts = nil
-  @path = ''
+  @path = ""
   @config_host = {}
 
   def self.version
-    '0.1.0'
+    "0.1.0"
   end
 
   def initialize(path)
@@ -21,11 +21,11 @@ class AnsibleInventory
   end
 
   def ansible_inventory_path
-    'ansible-inventory'
+    "ansible-inventory"
   end
 
   def ansible_path
-    'ansible'
+    "ansible"
   end
 
   # Returns parsed inventory content
@@ -34,7 +34,7 @@ class AnsibleInventory
 
     cmd = "#{ansible_inventory_path}" \
           " --inventory #{Shellwords.escape(@path)}" \
-          ' --yaml --list'
+          " --yaml --list"
     o, e, s = run_command(cmd)
     unless s.success?
       warn e
@@ -89,9 +89,9 @@ class AnsibleInventory
   def root_of_groups
     c = config
     begin
-      c['all']['children']
+      c["all"]["children"]
     rescue StandardError
-      raise 'BUG: unexpected inventory result from ansible-inventory'
+      raise "BUG: unexpected inventory result from ansible-inventory"
     end
   end
 
@@ -106,30 +106,30 @@ class AnsibleInventory
 
   def find_hidden_groups(parent)
     return [] if !parent ||
-                 !parent.key?('children') ||
-                 !parent['children'].respond_to?('keys')
+                 !parent.key?("children") ||
+                 !parent["children"].respond_to?("keys")
 
-    found = parent['children'].keys
+    found = parent["children"].keys
     found.each do |child|
-      found += find_hidden_groups(parent['children'][child])
+      found += find_hidden_groups(parent["children"][child])
     end
     found.uniq
   end
 
   def find_host_by_ec2_hostname(hostname)
-    config['all']['children']['ec2']['hosts'][hostname.gsub(/[.]/, '_')]
+    config["all"]["children"]["ec2"]["hosts"][hostname.gsub(/[.]/, "_")]
   end
 
   def resolve_hosts_of(group)
     hosts = []
     return [] if group.nil? || group.empty?
 
-    if group.key?('children')
-      group['children'].keys.each do |child|
-        hosts += resolve_hosts_of(group['children'][child])
+    if group.key?("children")
+      group["children"].keys.each do |child|
+        hosts += resolve_hosts_of(group["children"][child])
       end
-    elsif group.key?('hosts')
-      hosts += group['hosts'].keys.map { |key| key.gsub('_', '.') }
+    elsif group.key?("hosts")
+      hosts += group["hosts"].keys.map { |key| key.gsub("_", ".") }
     else
       raise "BUG \n" + group.to_yaml
     end

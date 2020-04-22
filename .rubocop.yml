@@ -1,5 +1,19 @@
 inherit_from: .rubocop_todo.yml
 
+AllCops:
+  Exclude:
+    - "vendor/**/*"
+  DisplayCopNames: true
+  ExtraDetails: true
+  DisplayStyleGuide: true
+  AllowSymlinksInCacheRootDirectory: true
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/SymbolArray:
+  EnforcedStyle: brackets
+
 Metrics/BlockLength:
   Exclude:
     - "spec/*"
