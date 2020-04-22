@@ -7,7 +7,7 @@ require "shellwords"
 # Class to represent ansible inventory
 class AnsibleInventory
   attr_accessor :addnsible_inventory_path
-  @config = nil
+  @config = {}
   @config_list_hosts = nil
   @path = ""
   @config_host = {}
