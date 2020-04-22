@@ -7,10 +7,6 @@ require "shellwords"
 # Class to represent ansible inventory
 class AnsibleInventory
   attr_accessor :addnsible_inventory_path
-  @config = {}
-  @config_list_hosts = nil
-  @path = ""
-  @config_host = {}
 
   def self.version
     "0.1.0"
@@ -18,6 +14,9 @@ class AnsibleInventory
 
   def initialize(path)
     @path = path
+    @config = {}
+    @config_list_hosts = nil
+    @config_host = {}
   end
 
   def ansible_inventory_path
@@ -30,7 +29,7 @@ class AnsibleInventory
 
   # Returns parsed inventory content
   def config
-    return @config if @config
+    return @config unless @config.empty?
 
     cmd = "#{ansible_inventory_path}" \
           " --inventory #{Shellwords.escape(@path)}" \
