@@ -44,7 +44,7 @@ class AnsibleInventory
   end
 
   def config_host(host)
-    return @config_host[host] if @config_host.key?(host)
+    return @config_host[host] if !@config_host.nil? && @config_host.key?(host)
 
     cmd = "#{ansible_inventory_path}" \
           " --inventory #{Shellwords.escape(@path)}" \
