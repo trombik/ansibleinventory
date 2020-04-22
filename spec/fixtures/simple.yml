@@ -1,0 +1,23 @@
+all:
+  children:
+    mx:
+      hosts:
+        mx1.trombik.org:
+          ansible_host: 172.16.100.100
+          vagrant_priority: 10
+    ungrouped: {}
+    virtualbox:
+      children:
+        mx:
+          hosts:
+            mx1.trombik.org: {}
+    virtualbox-credentials:
+      children:
+        mx:
+          hosts:
+            mx1.trombik.org: {}
+    virtualbox-mx:
+      children:
+        mx:
+          hosts:
+            mx1.trombik.org: {}
