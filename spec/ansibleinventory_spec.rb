@@ -72,6 +72,16 @@ RSpec.describe AnsibleInventory do
         ]
       end
     end
+
+    context "inventory is ec2" do
+      it "returns array" do
+        allow(inventory).to receive(:config).and_return(inventory_ec2)
+        %w[mx ungrouped staging staging-credentials staging-mx
+           tag_Namespace_mx].each do |group|
+          expect(inventory.all_groups).to include(group)
+        end
+      end
+    end
   end
 
   describe "#all_hosts_in" do

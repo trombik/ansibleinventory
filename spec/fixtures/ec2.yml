@@ -72,6 +72,14 @@ all:
         key_terraform_key:
           hosts:
             mx1_trombik_org: {}
+    mx:
+      children:
+        mx1.trombik.org:
+          hosts:
+            mx1_trombik_org: {}
+    mx1.trombik.org:
+      hosts:
+        mx1_trombik_org: {}
     platforms:
       children:
         platform_undefined:
@@ -98,19 +106,22 @@ all:
             mx:
               children:
                 mx1.trombik.org:
-                  children:
-                    tag_Name_mx1_trombik_org:
-                      hosts:
-                        mx1_trombik_org: {}
+                  hosts:
+                    mx1_trombik_org: {}
     staging-credentials:
       children:
         mx:
           children:
             mx1.trombik.org:
-              children:
-                tag_Name_mx1_trombik_org:
-                  hosts:
-                    mx1_trombik_org: {}
+              hosts:
+                mx1_trombik_org: {}
+    staging-mx:
+      children:
+        mx:
+          children:
+            mx1.trombik.org:
+              hosts:
+                mx1_trombik_org: {}
     tags:
       children:
         tag_Name:
